@@ -9,7 +9,9 @@
 ![NAT Gateway](https://img.shields.io/badge/AWS-NAT_Gateway-6B2FAF?logo=amazon-aws&logoColor=white)
 ![NGINX](https://img.shields.io/badge/NGINX-009639?logo=nginx&logoColor=white)
 
-![Architecture Diagram](assets/aws-alb.drawio.png)
+<p align="center">
+  <img src="assets/aws-alb.drawio.PNG" width="700">
+</p>
 
 This project is a production-style AWS environment designed and built from scratch. It runs inside a custom VPC with public and private subnets, an Application Load Balancer (for HTTP/S traffic), and NGINX servers hosted privately behind it. Private instances can reach the internet securely via a NAT Gateway.
 
