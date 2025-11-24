@@ -13,7 +13,7 @@
   <img src="assets/aws-alb.drawio.PNG" width="700">
 </p>
 
-This project is a production-style AWS environment designed and built from scratch. It runs inside a custom VPC with public and private subnets, an Application Load Balancer (for HTTP/S traffic), and NGINX servers hosted privately behind it. Private instances can reach the internet securely via a NAT Gateway.
+This project is a production-style AWS environment I designed and built from scratch. It runs inside a custom VPC with public and private subnets, an Application Load Balancer (for HTTP/S traffic), and NGINX servers hosted privately behind it. Private instances can reach the internet securely via a NAT Gateway.
 
 The goal was to learn how real architectures are deployed end to end with security, routing, DNS, certificates, and isolation between tiers.
 
@@ -104,7 +104,7 @@ These issues highlighted the importance of verifying instance setup, network dep
 
 ## Why I Built It
 
-I wanted A hands-on understanding of:
+I wanted a hands-on understanding of:
 
 - The configuration and management of Application Load Balancers, and how they work in a production-style setup
 - How multi-tier architectures actually fit together  
