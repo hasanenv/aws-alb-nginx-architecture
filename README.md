@@ -15,29 +15,35 @@
 
 This project is a production-style AWS environment I designed and built from scratch. It runs inside a custom VPC with public and private subnets, an Application Load Balancer (for HTTP/S traffic), and NGINX servers hosted privately behind it. Private instances can reach the internet securely via a NAT Gateway.
 
-The goal was to learn how real architectures are deployed end to end with security, routing, DNS, certificates, and isolation between tiers.
+The goal was to learn how real architectures are deployed end to end with security, load balancing, routing, DNS, and isolation between tiers.
 
 ## What the Architecture Includes
 
 ### Networking
-- Custom VPC with two Availability Zones in the `eu-west-2` region (`eu-west-2a` / `eu-west-2b`)
-- Public and private subnets  
-- Separate route tables for each subnet control how traffic flows.
+- Custom VPC with two Availability Zones in the `eu-west-2` region (`eu-west-2a` and `eu-west-2b`)
+- Public and private subnets with their own route tables controlling traffic
 - Internet Gateway used to allow internet access for public subnets
-- NAT Gateway allowing private servers to reach the internet when required
-- Private layer isolated from the internet  
+- NAT Gateway allows private instances to reach the internet when required
+- Private layer isolated from the public internet
+
+<p align="center">
+  <img src="assets/resource-map.png" width="800">
+</p>
 
 ### Compute Layer
-- Two EC2 instances running NGINX on port 80
-- Deployed in private subnets across different AZs  
-- No public IP addresses  
-- Only accessible through the load balancer
+- Two EC2 instances running NGINX (port 80)
+- Deployed in private subnets across different AZs for high availability
+- No public IP addresses; only accessible via the load balancer
 
 ### Load Balancing
-- Application Load Balancer placed in the public subnets  
+- Application Load Balancer placed across two public subnets  
 - Handles HTTP and HTTPS traffic  
 - Performs health checks and spreads the traffic across both backend servers  
 - Can scale horizontally if more instances are added
+
+<p align="center">
+  <img src="assets/alb-resource-map.png" width="800">
+</p>
 
 ### DNS and SSL
 
@@ -50,28 +56,28 @@ The goal was to learn how real architectures are deployed end to end with securi
 | hasan-alb.click                  | SOA   | No    | Standard AWS SOA configuration                                          | Provides DNS zone metadata and authority information |
 | _acm-validation.hasan-alb.click  | CNAME | No    | ACM validation record                                                   | Allows ACM to verify and issue the SSL certificate |
 
-- Route 53 hosting the public domain  
-- ACM handling SSL certificates  
-- HTTPS termination at the load balancer, keeping user traffic encrypted until it reaches the load balancer
+- Route 53 hosts the public domain  
+- ACM manages the SSL certificate for HTTPS
+- HTTPS terminates at the load balancer, keeping user traffic encrypted until it reaches the ALB
 
 ### Security Setup
 
-**Security Group: Private Instances**
+**Security Group: Private Instances Inbound Rules**
 
-| Rule | Protocol | Port | Source | Description |
-|---|---|---|---|---|
-| sg-rule-1 | TCP | 80 | ALB Security Group | Allow HTTP traffic from the Application Load Balancer |
-| sg-rule-2 | TCP | 22 | Bastion Security Group | Allow SSH access only from the bastion host |
+| Rule | Type | Protocol | Port | Source | Description |
+|---|---:|---|---:|---|---|
+| sg-rule-1 | HTTP  | TCP | 80  | ALB Security Group | Allow HTTP traffic from the Application Load Balancer |
+| sg-rule-2 | SSH   | TCP | 22  | Bastion Security Group | Allow SSH access **only** from the bastion host |
 
 > [!NOTE]
-> *No rule for inbound HTTPS as HTTPS is termianted and forwarded as HTTP within the private network*
+> *No inbound rule for HTTPS since SSL ends at the ALB and traffic is forwarded as HTTP within the private network*
 
-**Security Group: Application Load Balancer**
+**Security Group: Application Load Balancer Inbound Rules**
 
-| Rule | Protocol | Port | Source | Description |
-|---|---|---|---|---|
-| sg-rule-1 | TCP | 80 | 0.0.0.0/0 | Allow HTTP traffic from the internet |
-| sg-rule-2 | TCP | 443 | 0.0.0.0/0 | Allow HTTPS traffic from the internet |
+| Rule | Type  | Protocol | Port | Source     | Description |
+|---|---:|---|---:|---|---|
+| sg-rule-1 | HTTP  | TCP | 80  | 0.0.0.0/0 | Allow HTTP traffic from the internet (optional redirect to HTTPS) |
+| sg-rule-2 | HTTPS | TCP | 443 | 0.0.0.0/0 | Allow HTTPS traffic from the internet (ACM certificate on ALB) |
 
 - Security Groups keep access restricted and intentional
 - No direct SSH or web access to private servers  
@@ -82,19 +88,21 @@ The goal was to learn how real architectures are deployed end to end with securi
 
 ## How It Works
 
-1. A user visits the public domain managed by Route 53  
-2. HTTPS traffic arrives at the ALB, which is configured with an SSL certificate from ACM  
-3. The ALB checks which backend instances are healthy by conducting regular health checks
-4. Requests are sent to one of the NGINX servers in the private subnets (internally via HTTP)
-5. Responses travel back through the same path without the user ever seeing the internal layout
+  1. **User visits** the public domain managed by Route 53  
+  2. **HTTPS traffic arrives** at the ALB, configured with an SSL certificate from ACM  
+  3. **ALB checks** which backend instances are healthy via regular health checks  
+  4. **Requests are sent** to one of the NGINX servers in private subnets (internally via HTTP)  
+  5. **Responses travel back** the same path without the user seeing the internal layout
+
 
 ---
 
 ## Troubleshooting
 
-During the build, a couple of issues came up that are worth noting. Both were investigated using a temporary bastion host to SSH into the private instances.
+During the build, a couple of issues came up that are worth noting. Both were investigated using a temporary bastion host which was used to SSH into the private instances.
 
 Initially, the ALB reported unhealthy targets for two main reasons:
+
   1. NGINX wasn’t installed because the user data script used the wrong package manager for Amazon Linux.
   2. The EC2 user data script didn’t run properly at first because DNS hostnames and DNS resolution weren’t enabled for the VPC. Once these were enabled, the script executed correctly, NGINX was installed, and health checks passed.
 
