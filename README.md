@@ -27,7 +27,7 @@ The goal was to learn how real architectures are deployed end to end with securi
 - Private layer isolated from the public internet
 
 <p align="center">
-  <img src="assets/resource-map.png" width="800">
+  <img src="assets/resource-map.png" width="850">
 </p>
 
 ### Compute Layer
@@ -42,10 +42,10 @@ The goal was to learn how real architectures are deployed end to end with securi
 - Can scale horizontally if more instances are added
 
 <p align="center">
-  <img src="assets/alb-resource-map.png" width="800">
+  <img src="assets/alb-resource-map.png" width="850">
 </p>
 
-### DNS and SSL
+### DNS and SSL Configuration
 
 **Route 53 Hosted Zone**
 
