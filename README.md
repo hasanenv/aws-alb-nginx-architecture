@@ -65,7 +65,7 @@ The goal was to learn how real architectures are deployed end to end with securi
 **Security Group: Private Instances Inbound Rules**
 
 | Rule | Type | Protocol | Port | Source | Description |
-|---|---:|---|---:|---|---|
+|----|---|---|---:|---|---|
 | sg-rule-1 | HTTP  | TCP | 80  | ALB Security Group | Allow HTTP traffic from the Application Load Balancer |
 | sg-rule-2 | SSH   | TCP | 22  | Bastion Security Group | Allow SSH access **only** from the bastion host |
 
@@ -75,7 +75,7 @@ The goal was to learn how real architectures are deployed end to end with securi
 **Security Group: Application Load Balancer Inbound Rules**
 
 | Rule | Type  | Protocol | Port | Source     | Description |
-|---|---:|---|---:|---|---|
+|----|---|---|---:|---|---|
 | sg-rule-1 | HTTP  | TCP | 80  | 0.0.0.0/0 | Allow HTTP traffic from the internet (optional redirect to HTTPS) |
 | sg-rule-2 | HTTPS | TCP | 443 | 0.0.0.0/0 | Allow HTTPS traffic from the internet (ACM certificate on ALB) |
 
