@@ -45,10 +45,26 @@ The goal was to learn how real architectures are deployed end to end with securi
 - HTTPS termination at the load balancer, keeping user traffic encrypted until it reaches the load balancer
 
 ### Security Setup
+
+**Security Group: Private Instances**
+
+| Rule | Protocol | Port | Source | Description |
+|---|---|---|---|---|
+| sg-rule-1 | TCP | 80 | ALB Security Group | Allow HTTP traffic from the Application Load Balancer |
+| sg-rule-2 | TCP | 22 | Bastion Security Group | Allow SSH access only from the bastion host |
+
+*(No rule for inbound HTTPS as HTTPS is termianted and forwarded as HTTP within the private network)*
+
+**Security Group: Application Load Balancer**
+
+| Rule | Protocol | Port | Source | Description |
+|---|---|---|---|---|
+| sg-rule-1 | TCP | 80 | 0.0.0.0/0 | Allow HTTP traffic from the internet |
+| sg-rule-2 | TCP | 443 | 0.0.0.0/0 | Allow HTTPS traffic from the internet |
+
 - Security Groups keep access restricted and intentional
 - No direct SSH or web access to private servers  
-- Bastion access only when needed  
-- Clearly defined traffic paths to keep the attack surface minimal  
+- Bastion access when needed  
 - Separation of public and private layers, mirroring real production standards
 
 ---
