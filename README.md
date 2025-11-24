@@ -40,6 +40,16 @@ The goal was to learn how real architectures are deployed end to end with securi
 - Can scale horizontally if more instances are added
 
 ### DNS and SSL
+
+**Route 53 Hosted Zone**
+
+| Record Name                      | Type  | Alias | Points To / Value                                                      | Purpose |
+|---|---|---|---|---|
+| hasan-alb.click                  | A     | Yes   | Application Load Balancer (dualstack)                                  | Routes user traffic to the ALB |
+| hasan-alb.click                  | NS    | No    | AWS nameservers                                                         | Delegates DNS for the domain |
+| hasan-alb.click                  | SOA   | No    | Standard AWS SOA configuration                                          | Provides DNS zone metadata and authority information |
+| _acm-validation.hasan-alb.click  | CNAME | No    | ACM validation record                                                   | Allows ACM to verify and issue the SSL certificate |
+
 - Route 53 hosting the public domain  
 - ACM handling SSL certificates  
 - HTTPS termination at the load balancer, keeping user traffic encrypted until it reaches the load balancer
@@ -53,7 +63,8 @@ The goal was to learn how real architectures are deployed end to end with securi
 | sg-rule-1 | TCP | 80 | ALB Security Group | Allow HTTP traffic from the Application Load Balancer |
 | sg-rule-2 | TCP | 22 | Bastion Security Group | Allow SSH access only from the bastion host |
 
-*(No rule for inbound HTTPS as HTTPS is termianted and forwarded as HTTP within the private network)*
+> [!NOTE]
+> *No rule for inbound HTTPS as HTTPS is termianted and forwarded as HTTP within the private network*
 
 **Security Group: Application Load Balancer**
 
@@ -74,7 +85,7 @@ The goal was to learn how real architectures are deployed end to end with securi
 1. A user visits the public domain managed by Route 53  
 2. HTTPS traffic arrives at the ALB, which is configured with an SSL certificate from ACM  
 3. The ALB checks which backend instances are healthy by conducting regular health checks
-4. Requests are sent to one of the NGINX servers in the private subnets (internally via HTTP) 
+4. Requests are sent to one of the NGINX servers in the private subnets (internally via HTTP)
 5. Responses travel back through the same path without the user ever seeing the internal layout
 
 ---
